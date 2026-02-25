@@ -1,51 +1,37 @@
-from fastapi import FastAPI
-import json
 import threading
-import paho.mqtt.client as mqtt
-from datetime import datetime
-from app.api.endpoints import pump
+import sqlite3
+from fastapi import FastAPI
+from app.api.endpoints import pump, sensor
 from app.core.config import settings
+from app.core.mqtt_client import start_mqtt
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
-sensor_logs = []
+# --- DB初期化関数 ---
+def init_db():
+    with sqlite3.connect("sensor_data.db") as conn:
+        cursor = conn.cursor()
+        # 汎用的なテーブル data_logs を作成
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS data_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                type TEXT NOT NULL,
+                value1 REAL,
+                value2 REAL
+            )
+        ''')
+        conn.commit()
 
-def on_message(client, userdata, msg):
-    topic = msg.topic
-    payload = msg.payload.decode()
 
-    if topic == "Kyberno/sensor/data":
-        try:
-            data = json.loads(payload)
-            temp = data["temp"]
-            humi = data["humi"]
-            
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            log_entry = {"time": timestamp, "temp": temp, "humi": humi}
-            sensor_logs.append(log_entry)
-            
-            print(f"【成功】{timestamp} 測定完了 -> 温度:{temp}℃ 湿度:{humi}%")
-
-        except Exception as e:
-            print(f"【エラー】データの解析に失敗しました: {e} / 受信内容: {payload}")
-
-def start_mqtt():
-    client = mqtt.Client()
-    client.on_message = on_message
-    client.on_connect = lambda c, u, f, rc: c.subscribe("Kyberno/sensor/data")
-    client.connect("localhost", 1883, 60)
-    client.loop_forever()
+app.include_router(pump.router, prefix="/pump", tags=["Pump"])
+app.include_router(sensor.router, prefix="/sensor", tags=["Sensor"])
 
 @app.on_event("startup")
 def startup_event():
+    init_db()  
     threading.Thread(target=start_mqtt, daemon=True).start()
-
-app.include_router(pump.router, prefix="/pump", tags=["Pump"])
 
 @app.get("/")
 async def root():
     return {"message": f"Welcome to {settings.PROJECT_NAME} API"}
-
-@app.get("/sensor/check")
-async def check_sensor():
-    return {"current_logs": sensor_logs}
