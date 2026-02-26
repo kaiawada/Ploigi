@@ -18,7 +18,7 @@ def on_message(client, userdata, msg):
             humi = data["humi"]
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            # DBへの書き込み（INSERT）
+            
             with db_lock:
                 with sqlite3.connect(DB_FILE) as conn:
                     cursor = conn.cursor()

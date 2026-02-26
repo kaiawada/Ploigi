@@ -7,11 +7,9 @@ from app.core.mqtt_client import start_mqtt
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
-# --- DB初期化関数 ---
 def init_db():
     with sqlite3.connect("sensor_data.db") as conn:
         cursor = conn.cursor()
-        # 汎用的なテーブル data_logs を作成
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS data_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
