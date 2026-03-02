@@ -19,6 +19,15 @@ def init_db():
                 value2 REAL
             )
         ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS system_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                device_id TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                status TEXT NOT NULL
+            )
+        ''')
         conn.commit()
 
 
