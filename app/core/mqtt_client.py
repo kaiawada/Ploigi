@@ -46,6 +46,11 @@ def on_message(client, userdata, msg):
         except Exception as e:
             print(f"【エラー】システムイベント保存失敗: {e}")
 
+    elif topic == "Kyberno/pump/status":
+        pump_status = msg.payload.decode()
+        db_manager.save_system_event("PumpNode_01", f"ACTION_{pump_status}")
+        print(f"【DB記録】ポンプの動作結果を受信: {pump_status}")
+
 def start_mqtt():
 
     client = mqtt.Client()
