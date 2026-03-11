@@ -28,7 +28,18 @@ def init_db():
                 status TEXT NOT NULL
             )
         ''')
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS pump_logs(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                device_id TEXT,
+                action TEXT
+            )
+        ''')
+
         conn.commit()
+
 
 
 app.include_router(pump.router, prefix="/pump", tags=["Pump"])
