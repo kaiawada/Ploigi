@@ -1,4 +1,4 @@
-# Kyberno
+# Ploigi
 FastAPIとMQTTを用いた、水耕栽培・環境制御システム。
 
 ## プロジェクト背景,経緯
